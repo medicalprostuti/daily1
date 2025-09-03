@@ -1,0 +1,2455 @@
+<!DOCTYPE html>
+
+<html lang="bn">
+
+  <head>
+
+    <script>
+
+      document.addEventListener("contextmenu", (event) =>
+
+        event.preventDefault()
+
+      );
+
+      document.addEventListener("keydown", (event) => {
+
+        if (
+
+          (event.ctrlKey &&
+
+            ["u", "s", "i", "j"].includes(event.key.toLowerCase())) ||
+
+          event.key === "F12"
+
+        ) {
+
+          event.preventDefault();
+
+        }
+
+      });
+
+    </script>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Online Exam</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+      @import url("https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap");
+
+
+
+      body {
+
+        font-family: "Hind Siliguri", sans-serif;
+
+        margin: 0;
+
+        padding: 0;
+
+        background-color: #f4f4f4;
+
+        display: flex;
+
+        justify-content: center;
+
+        align-items: center;
+
+        height: 100vh;
+
+      }
+
+
+
+      .container {
+
+        font-family: "Hind Siliguri", sans-serif;
+
+        width: 100%;
+
+        margin: auto;
+
+        background-color: white;
+
+        padding: 20px;
+
+        border-radius: 10px;
+
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+        min-height: 80vh;
+
+      }
+
+
+
+      .exam-content {
+
+        padding: 20px;
+
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: center;
+
+      }
+
+
+
+      h1 {
+
+        color: #1b0b54;
+
+        text-align: center;
+
+        margin-bottom: 10px;
+
+      }
+
+
+
+      #timer {
+
+        font-size: 20px;
+
+        color: #1b0b54;
+
+        margin-bottom: 5px;
+
+        font-weight: normal;
+
+        text-align: center;
+
+      }
+
+
+
+      #exam-info {
+
+        font-size: 16px;
+
+        color: black;
+
+        margin-bottom: 20px;
+
+        text-align: center;
+
+      }
+
+
+
+      #exam {
+
+        width: 100%;
+
+        min-height: 100px;
+
+      }
+
+
+
+      .chart-container {
+
+        width: 200px;
+
+        height: 200px;
+
+        margin: 10px auto;
+
+        background-color: #f9f9f9;
+
+        border-radius: 15px;
+
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+        display: none;
+
+        padding: 10px;
+
+      }
+
+
+
+      .chart-container.visible {
+
+        display: block;
+
+      }
+
+
+
+      .question-container {
+
+        text-align: left;
+
+        margin-bottom: 20px;
+
+        display: none;
+
+      }
+
+
+
+      .question-label {
+
+        font-weight: bold;
+
+        color: #1b0b54;
+
+        margin-bottom: 10px;
+
+      }
+
+
+
+      .options {
+
+        margin-top: 10px;
+
+      }
+
+
+
+      .option {
+
+        margin-bottom: 8px;
+
+        display: flex;
+
+        align-items: center;
+
+        cursor: pointer;
+
+        padding: 5px;
+
+        border-radius: 5px;
+
+        text-transform: uppercase;
+
+      }
+
+
+
+      .circle {
+
+        width: 20px;
+
+        height: 20px;
+
+        border-radius: 50%;
+
+        border: 2px solid #1b0b54;
+
+        margin-right: 10px;
+
+        display: flex;
+
+        justify-content: center;
+
+        align-items: center;
+
+        color: #1b0b54;
+
+        font-weight: bold;
+
+        font-size: 18px;
+
+      }
+
+
+
+      .selected .circle {
+
+        background-color: #1b0b54;
+
+        color: white;
+
+      }
+
+
+
+      .correct-text {
+
+        color: green !important;
+
+      }
+
+
+
+      .incorrect-text {
+
+        color: #ff0800 !important;
+
+      }
+
+
+
+      .unattempted-text {
+
+        color: orange !important;
+
+      }
+
+
+
+      /* Updated CSS for submit button */
+
+      .button-container {
+
+        display: flex;
+
+        justify-content: center;
+
+        width: 100%;
+
+        margin-top: 20px; /* Added margin-top to separate from questions */
+
+      }
+
+
+
+      #submitBtn {
+
+        font-family: hind siliguri;
+
+        padding: 15px 30px;
+
+        background-color: #1b0b54;
+
+        color: white;
+
+        border: none;
+
+        cursor: pointer;
+
+        font-size: 18px;
+
+        font-weight: bold;
+
+        border-radius: 10px;
+
+        width: 200px;
+
+        transition: background-color 0.3s ease;
+
+      }
+
+
+
+      #submitBtn:hover {
+
+        background-color: #1b0b54;
+
+      }
+
+
+
+      .popup {
+
+        position: fixed;
+
+        top: 50%;
+
+        left: 50%;
+
+        transform: translate(-50%, -50%);
+
+        background-color: white;
+
+        padding: 20px;
+
+        width: 300px;
+
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+
+        border-radius: 10px;
+
+        text-align: center;
+
+        display: none;
+
+        z-index: 1000;
+
+        transition: transform 0.5s ease, opacity 0.5s ease;
+
+      }
+
+
+
+      .popup.slide-out {
+
+        transform: translate(-50%, -100%);
+
+        opacity: 0;
+
+      }
+
+
+
+      .popup-header {
+
+        background-color: #1b0b54;
+
+        color: white;
+
+        padding: 10px;
+
+        font-size: 20px;
+
+        font-weight: bold;
+
+        border-radius: 10px 10px 0 0;
+
+      }
+
+
+
+      .popup-body {
+
+        padding: 15px;
+
+      }
+
+
+
+      .popup-body p {
+
+        margin: 10px 0;
+
+      }
+
+
+
+      .confirm-btn {
+
+        font-family: hind siliguri;
+
+        background-color: #34c759;
+
+        color: white;
+
+        padding: 8px 15px;
+
+        border: none;
+
+        cursor: pointer;
+
+        font-size: 14px;
+
+        border-radius: 5px;
+
+        margin: 5px;
+
+      }
+
+
+
+      .confirm-btn:hover {
+
+        background-color: #34c759;
+
+      }
+
+
+
+      .cancel-btn {
+
+        background-color: #ff3b30;
+
+        color: white;
+
+        padding: 8px 15px;
+
+        border: none;
+
+        cursor: pointer;
+
+        font-size: 14px;
+
+        border-radius: 5px;
+
+        margin: 5px;
+
+      }
+
+
+
+      .cancel-btn:hover {
+
+        background-color: #e02b21;
+
+      }
+
+
+
+      .explanation-dropdown {
+
+        display: none;
+
+        margin-top: 10px;
+
+      }
+
+
+
+      .explanation-dropdown.visible {
+
+        display: block;
+
+      }
+
+
+
+      .explanation-btn {
+
+        background-color: #1b0b54;
+
+        color: white;
+
+        padding: 8px 15px;
+
+        border: none;
+
+        border-radius: 5px;
+
+        cursor: pointer;
+
+        font-size: 14px;
+
+        font-family: "Hind Siliguri", sans-serif;
+
+        width: 40%;
+
+        text-align: left;
+
+        position: relative;
+
+      }
+
+
+
+      .explanation-btn:hover {
+
+        background-color: #1b0b54;
+
+      }
+
+
+
+      .explanation-btn::after {
+
+        content: "▼";
+
+        position: absolute;
+
+        right: 10px;
+
+        font-size: 12px;
+
+      }
+
+
+
+      .explanation-btn.active::after {
+
+        content: "▲";
+
+      }
+
+
+
+      .explanation-content {
+
+        display: none;
+
+        padding: 15px;
+
+        background-color: #f9f9f9;
+
+        border: 1px solid #ccc;
+
+        border-radius: 5px;
+
+        font-size: 14px;
+
+        color: #000000;
+
+        text-align: left;
+
+        max-height: 450px;
+
+        overflow-y: auto;
+
+        margin-top: 5px;
+
+      }
+
+
+
+      .explanation-content.visible {
+
+        display: block;
+
+      }
+
+
+
+      .explanation-content p {
+
+        margin: 0 0 10px 0;
+
+      }
+
+
+
+      .explanation-content ul {
+
+        margin: 0;
+
+        padding-left: 20px;
+
+      }
+
+
+
+      .explanation-content li {
+
+        margin-bottom: 5px;
+
+      }
+
+
+
+      .explanation-content strong {
+
+        color: #1b0b54;
+
+      }
+
+
+
+      .explanation-label {
+
+        font-weight: bold;
+
+        color: #1b0b54;
+
+        margin-bottom: 10px;
+
+        display: block;
+
+      }
+
+
+
+      .locked .option {
+
+        pointer-events: none;
+
+        cursor: default;
+
+      }
+
+
+
+      .locked .option.selected {
+
+        pointer-events: none;
+
+        cursor: default;
+
+      }
+
+
+
+      /* Updated CSS for serial number input section */
+
+      .serial-input-container {
+
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: center;
+
+        margin-bottom: 20px;
+
+        text-align: center;
+
+      }
+
+
+
+      .serial-input-container p {
+
+        color: #1b0b54;
+
+        font-weight: bold;
+
+        margin-bottom: 10px;
+
+      }
+
+
+
+      .serial-input-container input {
+
+        width: 100%;
+
+        max-width: 250px;
+
+        padding: 10px;
+
+        font-size: 16px;
+
+        text-align: center;
+
+        border-radius: 5px;
+
+        border: 1px solid #ccc;
+
+        margin-bottom: 15px;
+
+        font-family: "Hind Siliguri", sans-serif; /* Added font-family */
+
+      }
+
+
+
+      .serial-input-container input::placeholder {
+
+        font-family: "Hind Siliguri", sans-serif; /* Added font-family to placeholder */
+
+      }
+
+
+
+      /* New styling for start exam button */
+
+      #startExamBtn {
+
+        font-family: hind siliguri;
+
+        padding: 12px 25px;
+
+        background-color: #1b0b54;
+
+        color: white;
+
+        border: none;
+
+        cursor: pointer;
+
+        font-size: 16px;
+
+        border-radius: 8px;
+
+        width: 150px; /* Reduced width */
+
+        transition: background-color 0.3s ease;
+
+      }
+
+
+
+      #startExamBtn:hover {
+
+        background-color: #1b0b54;
+
+      }
+
+
+
+      /* Updated CSS for error popup */
+
+      #errorPopup {
+
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Reduced shadow */
+
+      }
+
+      #errorPopup .popup-body {
+
+        min-height: unset; /* Ensure height is minimal */
+
+        padding-bottom: 10px; /* Adjust padding as needed */
+
+      }
+
+      #errorPopup .popup-body p {
+
+        margin-top: 0;
+
+        margin-bottom: 15px; /* Adjust margin as needed */
+
+      }
+
+    </style>
+
+  </head>
+
+  <body>
+
+    <div class="container" id="examContainer">
+
+      <div class="exam-content">
+
+        <h1>ডেইলি-০১</h1>
+
+        <div id="serialInputContainer" class="serial-input-container">
+
+          <p>তোমার সিরিয়াল নম্বরটি দাও:</p>
+
+          <input
+
+            type="number"
+
+            id="serialNumberInput"
+
+            placeholder="সিরিয়াল নম্বর"
+
+            maxlength="5"
+
+          />
+
+          <button id="startExamBtn">শুরু করো</button>
+
+        </div>
+
+        <div id="examContentArea" style="display: none">
+
+          <div id="timer"></div>
+
+          <div id="exam-info"></div>
+
+          <div class="chart-container">
+
+            <canvas id="scoreChart"></canvas>
+
+          </div>
+
+          <div id="exam">
+
+            </div>
+
+          <div class="button-container">
+
+            <button id="submitBtn">সাবমিট</button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="popup" id="scorePopup">
+
+      <div class="popup-header">তোমার স্কোর</div>
+
+      <div class="popup-body">
+
+        <p>
+
+          <strong>সিরিয়াল নম্বর:</strong> <span id="popupSerial"></span>
+
+        </p>
+
+        <p>
+
+          <strong>মোট প্রশ্ন:</strong> <span id="totalQuestions"></span>
+
+        </p>
+
+        <p>
+
+          <strong>উত্তর দিয়েছো:</strong>
+
+          <span style="color: #000000" id="answered"></span>
+
+        </p>
+
+        <p>
+
+          <strong>সঠিক উত্তর:</strong>
+
+          <span style="color: #0ab853" id="correctAnswers"></span>
+
+        </p>
+
+        <p>
+
+          <strong>ভুল উত্তর:</strong>
+
+          <span style="color: #f81010" id="wrongAnswers"></span>
+
+        </p>
+
+        <p>
+
+          <strong>অনুত্তরিত:</strong>
+
+          <span style="color: #ffc801" id="unanswered"></span>
+
+        </p>
+
+        <p><strong>তোমার চূড়ান্ত স্কোর:</strong></p>
+
+        <h2 style="color: #1b0b54"><span id="finalScore"></span></h2>
+
+        <form id="scoreForm" action="https://formspree.io/f/xpwdgpby" method="POST">
+
+          <input type="hidden" name="serialNumber" id="formSerialNumber" />
+
+          <input type="hidden" name="actionType" value="exam_submit" />
+
+          <input type="hidden" name="submissionTime" id="formSubmissionTime" />
+
+          <input type="hidden" name="finalScore" id="formFinalScore" />
+
+          <input type="hidden" name="correctAnswers" id="formCorrectAnswers" />
+
+          <input type="hidden" name="wrongAnswers" id="formWrongAnswers" />
+
+          <input type="hidden" name="unanswered" id="formUnanswered" />
+
+          <button
+
+            type="submit"
+
+            class="confirm-btn"
+
+            style="background-color: #1b0b54"
+
+          >
+
+            <b>ওকে</b>
+
+          </button>
+
+        </form>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="popup" id="confirmPopup">
+
+      <div class="popup-header">কনফার্ম করো</div>
+
+      <div class="popup-body">
+
+        <p>
+
+          ভালো করে দেখে নাও! <br />
+
+          পরীক্ষা শেষ করতে চাও তো?
+
+        </p>
+
+        <button class="confirm-btn" onclick="confirmSubmit()">
+
+          <b>হ্যাঁ</b>
+
+        </button>
+
+        <button class="cancel-btn" onclick="cancelSubmit()"><b>না</b></button>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="popup" id="errorPopup">
+
+      <div class="popup-header">ত্রুটি</div>
+
+      <div class="popup-body">
+
+        <p>সিরিয়াল নম্বরটি অবশ্যই ৫-সংখ্যার হতে হবে।</p>
+
+        <button class="confirm-btn" onclick="closeErrorPopup()">
+
+          <b>ওকে</b>
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+
+    <script>
+
+      let chartInstance = null;
+
+      let serialNumber = "";
+
+      let examStartTime = null;
+
+
+
+      document.addEventListener("DOMContentLoaded", function () {
+
+        const startExamBtn = document.getElementById("startExamBtn");
+
+        startExamBtn.addEventListener("click", startExam);
+
+
+
+        const submitBtn = document.getElementById("submitBtn");
+
+        submitBtn.addEventListener("click", showConfirmPopup);
+
+      });
+
+
+
+      function startExam() {
+
+        const serialNumberInput = document.getElementById("serialNumberInput");
+
+        const inputSerial = serialNumberInput.value.trim();
+
+
+
+        if (inputSerial.length !== 5 || isNaN(inputSerial)) {
+
+          showErrorPopup();
+
+          return;
+
+        }
+
+
+
+        serialNumber = inputSerial;
+
+        examStartTime = new Date().toISOString();
+
+
+
+        // Send start time data to Formspree in the background
+
+        sendFormspreeData({
+
+          serialNumber: serialNumber,
+
+          actionType: "exam_start",
+
+          startTime: examStartTime,
+
+        });
+
+
+
+        // Hide serial input and show exam content
+
+        document.getElementById("serialInputContainer").style.display = "none";
+
+        document.getElementById("examContentArea").style.display = "block";
+
+
+
+        generateQuestions();
+
+        startTimer();
+
+      }
+
+
+
+      function sendFormspreeData(data) {
+
+        const formData = new FormData();
+
+        for (const key in data) {
+
+          formData.append(key, data[key]);
+
+        }
+
+        const url = "https://formspree.io/f/xpwdgpby";
+
+        navigator.sendBeacon(url, formData);
+
+      }
+
+
+
+      const questions = [
+
+
+ 
+ {
+          id: 1,
+          question: "What kind of noun is 'discipline'?",
+          options: {
+            a: "Common noun",
+            b: "Abstract noun",
+            c: "Collective noun",
+            d: "Proper noun",
+          },
+          correct: "b",
+          explanation:
+            "<p><b>Discipline</b> একটি Abstract noun। Abstract noun হলো এমন একটি noun যা কোনো ধারণা, গুণ, অবস্থা বা অনুভূতিকে বোঝায়, যা আমরা পঞ্চ ইন্দ্রিয় দ্বারা অনুভব করতে পারি না। অর্থাৎ, এটি দেখা, স্পর্শ করা, শোনা, গন্ধ নেওয়া বা স্বাদ নেওয়া যায় না।</p><br><p><b>ব্যাখ্যা:</b></p><ul><li><b>(A) Common noun:</b> কমন নাউন হলো সাধারণ নাম যা একই প্রকারের ব্যক্তি, বস্তু, স্থান বা ধারণাকে বোঝায়। যেমন: 'boy', 'city', 'book' ইত্যাদি। 'Discipline' কোনো সাধারণ ব্যক্তি বা বস্তুর নাম নয়।</li><li><b>(B) Abstract noun:</b> Abstract noun হলো এমন গুণ বা ধারণার নাম যা শারীরিক অস্তিত্ব নেই। 'Discipline' একটি গুণ বা ধারণাকে বোঝায় (যেমন: নিয়ম মানা, আত্মনিয়ন্ত্রণ)। তাই এটি Abstract noun।</li><li><b>(C) Collective noun:</b> কালেক্টিভ নাউন হলো একদল ব্যক্তি বা বস্তুকে একসাথে বোঝাতে ব্যবহৃত হয়। যেমন: 'team', 'family', 'flock' ইত্যাদি। 'Discipline' কোনো সমষ্টিকে বোঝায় না।</li><li><b>(D) Proper noun:</b> প্রপার নাউন হলো কোনো নির্দিষ্ট ব্যক্তি, স্থান বা বস্তুর নাম। এটি সবসময় বড় হাতের অক্ষর দিয়ে শুরু হয়। যেমন: 'Dhaka', 'Rina', 'Bangladesh' ইত্যাদি। 'Discipline' কোনো নির্দিষ্ট নাম নয়।</li></ul>",
+        },{
+          id: 3,
+          question: "Which of the following is a countable noun?",
+          options: {
+            a: "furniture",
+            b: "news",
+            c: "money",
+            d: "headache",
+          },
+          correct: "d",
+          explanation:
+            "<p>Countable noun হলো সেই noun যা গণনা করা যায় এবং যার একবচন ও বহুবচন রূপ আছে।</p><br><p><b>ব্যাখ্যা:</b></p><ul><li><b>(A) Furniture:</b> 'Furniture' একটি Uncountable noun। আমরা 'a piece of furniture' বা 'items of furniture' বলতে পারি, কিন্তু সরাসরি 'furnitures' বলতে পারি না। এটি একটি সমষ্টিবাচক শব্দ যা বিভিন্ন আসবাবপত্রকে বোঝায়।</li><li><b>(B) News:</b> 'News' একটি Uncountable noun। যদিও এর শেষে 's' আছে, এটি singular অর্থ প্রকাশ করে এবং একে গণনা করা যায় না।</li><li><b>(C) Money:</b> 'Money' একটি Uncountable noun। আমরা 'coins' বা 'notes' গণনা করতে পারি, কিন্তু 'money' নিজে গণনা করা যায় না।</li><li><b>(D) Headache:</b> 'Headache' একটি Countable noun। আমরা 'one headache', 'two headaches' ইত্যাদি বলতে পারি। এটি গণনা করা যায়।</li></ul>",
+        },{
+          id: 4,
+          question: "The man is carrying a ____ of cement.",
+          options: {
+            a: "sack",
+            b: "mouthful",
+            c: "reel",
+            d: "bunch",
+          },
+          correct: "a",
+          explanation:
+            "<p>এখানে সঠিক শব্দটি হবে 'sack'। 'Sack' অর্থ বস্তা। সিমেন্ট সাধারণত বস্তায় ভরে বহন করা হয়।</p><br><p><b>ব্যাখ্যা:</b></p><ul><li><b>(A) Sack:</b> 'Sack' মানে বস্তা। সিমেন্ট বস্তায় রাখা হয়, তাই 'a sack of cement' একটি সঠিক collocation।</li><li><b>(B) Mouthful:</b> 'Mouthful' মানে এক মুখ ভরা। এটি সাধারণত খাবার বা তরল পদার্থের ক্ষেত্রে ব্যবহৃত হয়। যেমন: 'a mouthful of food'।</li><li><b>(C) Reel:</b> 'Reel' মানে রিল বা চাকা। এটি সাধারণত সুতা, ফিল্ম বা তারের ক্ষেত্রে ব্যবহৃত হয়। যেমন: 'a reel of film'।</li><li><b>(D) Bunch:</b> 'Bunch' মানে গুচ্ছ বা থোকা। এটি সাধারণত ফল, ফুল বা চাবির ক্ষেত্রে ব্যবহৃত হয়। যেমন: 'a bunch of grapes'।</li></ul>",
+        },{
+          id: 13,
+          question: "Which of the following is NOT an abstract noun?",
+          options: {
+            a: "Goodness",
+            b: "Family",
+            c: "Bravery",
+            d: "Childhood",
+          },
+          correct: "b",
+          explanation:
+            "<p>Abstract noun হলো এমন একটি noun যা কোনো ধারণা, গুণ, অবস্থা বা অনুভূতিকে বোঝায়, যা আমরা পঞ্চ ইন্দ্রিয় দ্বারা অনুভব করতে পারি না। প্রশ্নটি জানতে চেয়েছে কোনটি abstract noun নয়।</p><br><p><b>ব্যাখ্যা:</b></p><ul><li><b>(A) Goodness:</b> 'Goodness' (সৃষ্টিকর্তা) একটি গুণবাচক ধারণা, যা দেখা বা স্পর্শ করা যায় না। এটি Abstract noun।</li><li><b>(B) Family:</b> 'Family' (পরিবার) হলো একদল মানুষের সমষ্টি। এটি একটি Collective noun, Abstract noun নয়। এটি এমন একটি noun যা পঞ্চ ইন্দ্রিয় দ্বারা অনুভব করা যায় (পরিবারের সদস্যদের দেখা যায়)।</li><li><b>(C) Bravery:</b> 'Bravery' (সাহসিকতা) একটি গুণবাচক ধারণা, যা দেখা বা স্পর্শ করা যায় না। এটি Abstract noun।</li><li><b>(D) Childhood:</b> 'Childhood' (শৈশব) একটি অবস্থাকে বোঝায়, যা দেখা বা স্পর্শ করা যায় না। এটি Abstract noun।</li></ul>",
+        },{
+          id: 11,
+          question:
+            "The necklace is made of gold. What kind of noun is the word 'gold'?",
+          options: {
+            a: "proper noun",
+            b: "abstract noun",
+            c: "collective noun",
+            d: "material noun",
+          },
+          correct: "d",
+          explanation:
+            "<p><b>Gold</b> একটি Material noun। Material noun হলো সেই noun যা দ্বারা কোনো পদার্থ বা উপাদানকে বোঝায় যা থেকে অন্য কিছু তৈরি হয় বা যা সরাসরি গণনা করা যায় না।</p><br><p><b>ব্যাখ্যা:</b></p><ul><li><b>(A) Proper noun:</b> প্রপার নাউন হলো কোনো নির্দিষ্ট ব্যক্তি, স্থান বা বস্তুর নাম। 'Gold' কোনো নির্দিষ্ট নাম নয়।</li><li><b>(B) Abstract noun:</b> Abstract noun হলো এমন গুণ বা ধারণার নাম যা শারীরিক অস্তিত্ব নেই। 'Gold' একটি ভৌত পদার্থ।</li><li><b>(C) Collective noun:</b> কালেক্টিভ নাউন হলো একদল ব্যক্তি বা বস্তুকে একসাথে বোঝাতে ব্যবহৃত হয়। 'Gold' কোনো সমষ্টিকে বোঝায় না।</li><li><b>(D) Material noun:</b> মেটেরিয়াল নাউন হলো সেই noun যা দ্বারা কোনো পদার্থ বা উপাদানকে বোঝায় যা থেকে অন্য কিছু তৈরি হয়। 'Gold' একটি ধাতু যা থেকে অলংকার তৈরি হয়। তাই এটি Material noun।</li></ul>",
+        },
+{
+          id: 5,
+          question: "বাংলাদেশের পার্বত্য চট্টগ্রামে কতটি জেলা আছে?",
+          options: {
+            a: "৯ টি",
+            b: "৫ টি",
+            c: "৭ টি",
+            d: "৩ টি",
+          },
+          correct: "d",
+          explanation:
+            "<p>বাংলাদেশের পার্বত্য চট্টগ্রামে মোট ৩টি জেলা আছে। এই জেলাগুলো হলো:</p><ul><li>রাঙ্গামাটি</li><li>খাগড়াছড়ি</li><li>বান্দরবান</li></ul><p>এই তিনটি জেলা বাংলাদেশের দক্ষিণ-পূর্বাঞ্চলে অবস্থিত এবং এর প্রাকৃতিক সৌন্দর্য ও পাহাড়ি ভূখণ্ড দেশের অন্যতম আকর্ষণ।</p>",
+        },{
+          id: 10,
+          question: "বাংলাদেশের উত্তরে কোনটির অবস্থান?",
+          options: {
+            a: "নেপাল ও ভুটান",
+            b: "পশ্চিমবঙ্গ, মেঘালয় ও আসাম",
+            c: "পশ্চিমবঙ্গ ও কুচবিহার",
+            d: "পশ্চিমবঙ্গ ও আসাম",
+          },
+          correct: "b",
+          explanation:
+            "<p>বাংলাদেশের উত্তরে ভারতের পশ্চিমবঙ্গ, মেঘালয় এবং আসাম রাজ্য অবস্থিত। এই তিনটি রাজ্য বাংলাদেশের সাথে দীর্ঘ সীমান্ত রেখা ভাগ করে। এছাড়া, উত্তর-পূর্ব দিকে ভারতের ত্রিপুরা এবং মিজোরাম রাজ্য অবস্থিত।</p>",
+        },{
+          id: 11,
+          question: "বাংলাদেশের সবচেয়ে উত্তরের জেলা কোনটি?",
+          options: {
+            a: "দিনাজপুর",
+            b: "ঠাকুরগাঁও",
+            c: "লালমনিরহাট",
+            d: "পঞ্চগড়",
+          },
+          correct: "d",
+          explanation:
+            "<p>বাংলাদেশের সবচেয়ে উত্তরের জেলা হলো পঞ্চগড়। পঞ্চগড় জেলার তেঁতুলিয়া উপজেলা এবং বাংলাবান্ধা হলো বাংলাদেশের সর্ব উত্তরের স্থান। এই জেলা ভারতের পশ্চিমবঙ্গের সাথে সীমান্ত ভাগ করে এবং এর প্রাকৃতিক সৌন্দর্য এবং চা বাগান উল্লেখযোগ্য।</p>",
+        },{
+          id: 12,
+          question: "আয়তনে বড় বিভাগ কোনটি?",
+          options: {
+            a: "ঢাকা",
+            b: "রাজশাহী",
+            c: "চট্টগ্রাম",
+            d: "বরিশাল",
+          },
+          correct: "c",
+          explanation:
+            "<p>আয়তনে বাংলাদেশের সবচেয়ে বড় বিভাগ হলো চট্টগ্রাম। এই বিভাগে দেশের বৃহত্তম জেলা রাঙ্গামাটি, খাগড়াছড়ি এবং বান্দরবান অবস্থিত, যা মূলত পাহাড়ি অঞ্চল নিয়ে গঠিত। ভৌগোলিক আয়তনের দিক থেকে এটি বাংলাদেশের বৃহত্তম বিভাগ।</p>",
+        },
+        {
+          id: 13,
+          question: "নিচের কোন রেখাটি বাংলাদেশের মধ্য দিয়ে গিয়েছে?",
+          options: {
+            a: "বিষুবরেখা",
+            b: "কর্কটক্রান্তি রেখা",
+            c: "মকরক্রান্তি রেখা",
+            d: "সুমেরুবৃত্ত",
+          },
+          correct: "b",
+          explanation:
+            "<p>কর্কটক্রান্তি রেখা (Tropic of Cancer) বাংলাদেশের প্রায় মাঝ বরাবর দিয়ে অতিক্রম করেছে। এই রেখাটি নিরক্ষরেখার ২৩.৫ ডিগ্রি উত্তর অক্ষাংশে অবস্থিত। এটি বাংলাদেশের উপর দিয়ে যাওয়ার কারণে দেশের জলবায়ুর উপর এর প্রভাব রয়েছে, বিশেষ করে তাপমাত্রা এবং ঋতু পরিবর্তনের ক্ষেত্রে।</p>",
+        },
+
+
+{
+    "id": 4,
+    "question": "নিলয়ের ডায়াস্টোলের সময় নিম্নের কত সেকেন্ড?",
+    "options": {
+      "a": "0.5 s",
+      "b": "0.7 s",
+      "c": "0.1 s",
+      "d": "0.3 s"
+    },
+    "correct": "a",
+    "explanation": "<p>নিলয়ের ডায়াস্টোলের (Ventricular diastole) সময়কাল হলো <strong>০.৫ সেকেন্ড</strong>। এই সময়ে নিলয়গুলো প্রসারিত হয় এবং অলিন্দ থেকে রক্ত গ্রহণ করে।</p>"
+  },{
+    "id": 16,
+    "question": "নিচের কোনটির তৈরির প্রক্রিয়াকে এরিথ্রোপোয়েসিস বলে?",
+    "options": {
+      "a": "লোহিত রক্তকণিকা",
+      "b": "অণুচক্রিকা",
+      "c": "প্লাজমা",
+      "d": "শ্বেত রক্তকণিকা"
+    },
+    "correct": "a",
+    "explanation": "<p>এরিথ্রোপোয়েসিস (Erythropoiesis) হলো লোহিত রক্তকণিকা (Red blood cell) তৈরির প্রক্রিয়া। এই প্রক্রিয়াটি প্রধানত অস্থি মজ্জায় (Bone marrow) ঘটে এবং এরিথ্রোপোয়েটিন নামক হরমোন দ্বারা নিয়ন্ত্রিত হয়।</p>"
+  },{
+    "id": 13,
+    "question": "কোনটি প্লাজমা প্রোটিন নয়?",
+    "options": {
+      "a": "ফিব্রিনোজেন",
+      "b": "টাইরোসিন",
+      "c": "অ্যালবুমিন",
+      "d": "প্রোথ্রোম্বিন"
+    },
+    "correct": "b",
+    "explanation": "<p>টাইরোসিন (Tyrosine) হলো একটি অ্যামিনো অ্যাসিড, যা প্রোটিন তৈরির একটি উপাদান। এটি সরাসরি প্লাজমা প্রোটিন নয়, বরং প্রোটিনের একটি বিল্ডিং ব্লক। ফিব্রিনোজেন, অ্যালবুমিন এবং প্রোথ্রোম্বিন প্রতিটিই রক্তের প্লাজমায় পাওয়া যায় এমন গুরুত্বপূর্ণ প্রোটিন।</p>"
+  },{
+    "id": 3,
+    "question": "পূর্ণবয়স্ক সুস্থ মানুষের দেহের ওজনের কত শতাংশ রক্ত থাকে?",
+    "options": {
+      "a": "7-8%",
+      "b": "15-19%",
+      "c": "19-20%",
+      "d": "10-15%"
+    },
+    "correct": "a",
+    "explanation": "<p>পূর্ণবয়স্ক সুস্থ মানুষের দেহের ওজনের প্রায় ৭-৮% রক্ত থাকে। উদাহরণস্বরূপ, ৭০ কেজি ওজনের একজন সুস্থ মানুষের দেহে প্রায় ৫-৬ লিটার রক্ত থাকে।</p>"
+  },
+
+{
+    "id": 53,
+    "question": "রক্ত তঞ্চনের জন্য নিচের কোনটি সঠিক?",
+    "options": {
+      "a": "প্রোথ্রোম্বিন → ফাইব্রিন + Ca<sup>++</sup> → থ্রম্বিন",
+      "b": "প্রোথ্রোম্বিন → থ্রম্বোপ্লাস্টিন + Ca<sup>++</sup> → থ্রম্বিন",
+      "c": "ফাইব্রিনোজেন → প্রোথ্রোম্বিন + Ca<sup>++</sup> → থ্রম্বিন",
+      "d": "ফাইব্রিন → থ্রম্বোপ্লাস্টিন + Ca<sup>++</sup>"
+    },
+    "correct": "b",
+    "explanation": "<p>রক্ত তঞ্চনের সঠিক ধাপগুলোর মধ্যে একটি হলো প্রোথ্রোম্বিন (Prothrombin) থ্রম্বোপ্লাস্টিন (Thromboplastin) এবং ক্যালসিয়াম আয়ন (Ca<sup>++</sup>) এর উপস্থিতিতে থ্রম্বিনে (Thrombin) রূপান্তরিত হয়। এই থ্রম্বিনই পরবর্তীতে ফাইব্রিনোজেনকে ফাইব্রিনে পরিণত করে রক্ত জমাট বাঁধায়।</p>"
+  },{
+    "id": 1,
+    "question": "ভ্রূণ অবস্থায় মাতৃগর্ভে কখন প্রথম হৃদস্পন্দন শুরু হয়?",
+    "options": {
+      "a": "অষ্টম সপ্তাহ",
+      "b": "চতুর্থ সপ্তাহ",
+      "c": "দশম সপ্তাহ",
+      "d": "দ্বাদশ সপ্তাহ"
+    },
+    "correct": "b",
+    "explanation": "<p>ভ্রূণ অবস্থায় মাতৃগর্ভে <strong>চতুর্থ সপ্তাহ</strong> থেকেই প্রথম হৃদস্পন্দন শুরু হয়। এই সময়ে হৃৎপিণ্ড একটি সরল নলাকার কাঠামো থেকে জটিল গঠনে বিকশিত হতে শুরু করে এবং রক্ত পাম্প করা শুরু করে।</p>"
+  },
+
+{
+    "id": 2,
+    "question": "পেসমেকারের অবস্থান হৃৎপিণ্ডের কোথায়?",
+    "options": {
+      "a": "বাম অলিন্দ",
+      "b": "বাম নিলয়",
+      "c": "ডান অলিন্দ",
+      "d": "ডান নিলয়"
+    },
+    "correct": "c",
+    "explanation": "<p>পেসমেকার বা <strong>SA node</strong> হৃৎপিণ্ডের <strong>ডান অলিন্দে</strong> (Right atrium) অবস্থিত। এটি ঊর্ধ্ব মহাশিরার (Superior Vena Cava) প্রবেশ মুখের কাছে অবস্থিত থাকে।</p>"
+  },{
+    "id": 7,
+    "question": "নিম্নের কোনটি হৃৎপিণ্ডের সংবহন তন্ত্রের অংশ নয়?",
+    "options": {
+      "a": "পেসমেকার",
+      "b": "মায়োকার্ডিয়াম",
+      "c": "বান্ডল অব হিজ",
+      "d": "পারকিনজি তন্তু"
+    },
+    "correct": "b",
+    "explanation": "<p><strong>মায়োকার্ডিয়াম</strong> (Myocardium) হলো হৃৎপিণ্ডের পেশী স্তর, যা হৃৎপিণ্ডের সংকোচন-প্রসারণে সক্রিয় ভূমিকা পালন করে। এটি হৃৎপিণ্ডের বৈদ্যুতিক সংবহন তন্ত্রের (Electrical conduction system) সরাসরি অংশ নয়। পেসমেকার (SA node), বান্ডল অব হিজ (Bundle of His), এবং পারকিনজি তন্তু (Purkinje fiber) হৃৎপিণ্ডের বৈদ্যুতিক উদ্দীপনা সঞ্চালনের পথ তৈরি করে।</p>"},
+    {
+    "id": 11,
+    "question": "কার্ডিয়াক চক্রের কোন দশার সময়কাল ০.১ সেকেন্ড?",
+    "options": {
+      "a": "অলিন্দের সিস্টোল",
+      "b": "অলিন্দের ডায়াস্টোল",
+      "c": "নিলয়ের সিস্টোল",
+      "d": "নিলয়ের ডায়াস্টোল"
+    },
+    "correct": "a",
+    "explanation": "<p>কার্ডিয়াক চক্রের <strong>অলিন্দের সিস্টোল</strong> (Atrial systole) দশার সময়কাল হলো <strong>০.১ সেকেন্ড</strong>। এই সংক্ষিপ্ত সময়ে অলিন্দগুলো সংকুচিত হয় এবং নিলয়গুলোকে রক্ত দ্বারা পূর্ণ করে।</p>"
+  },{
+    "id": 1,
+    "question": "কোন জাতীয় ব্যারোরিসেপ্টর রক্তের আয়তন নিয়ন্ত্রণে ভূমিকা রাখে?",
+    "options": {
+      "a": "উচ্চচাপ ব্যারোরিসেপ্টর",
+      "b": "ক্যারোটিড ব্যারোরিসেপ্টর",
+      "c": "নিম্নচাপ ব্যারোরিসেপ্টর",
+      "d": "অ্যাট্রিয়াল ব্যারোরিসেপ্টর"
+    },
+    "correct": "c",
+    "explanation": "<p><strong>নিম্নচাপ ব্যারোরিসেপ্টর</strong> (Low-pressure baroreceptors) বা আয়তন রিসেপ্টর (Volume receptors) রক্তের আয়তন নিয়ন্ত্রণে গুরুত্বপূর্ণ ভূমিকা রাখে। এরা প্রধানত হৃৎপিণ্ডের অলিন্দ, বড় সিস্টেমিক শিরা এবং পালমোনারি রক্তবাহিকার প্রাচীরে অবস্থিত। এই রিসেপ্টরগুলো রক্তের আয়তন কমে গেলে তা শনাক্ত করে এবং ADH হরমোন ক্ষরণে উদ্দীপনা যোগায়, যা বৃক্কে পানির পুনঃশোষণ বাড়িয়ে রক্তের আয়তন ও চাপ স্বাভাবিক রাখতে সাহায্য করে।</p>"
+  },{
+    "id": 2,
+    "question": "স্বাভাবিক পূর্ণবয়স্ক মহিলার প্রতি 100 ml রক্তে কত গ্রাম হিমোগ্লোবিন থাকে?",
+    "options": {
+      "a": "10 - 12",
+      "b": "16 - 19",
+      "c": "8 - 11",
+      "d": "14-17"
+    },
+    "correct": "d",
+    "explanation": "<p>স্বাভাবিক পূর্ণবয়স্ক মহিলার প্রতি 100 ml রক্তে সাধারণত 12-16 গ্রাম হিমোগ্লোবিন (Hemoglobin) থাকে। তবে, বিভিন্ন উৎস অনুযায়ী এটি 14-17 গ্রাম পর্যন্ত হতে পারে। পুরুষদের ক্ষেত্রে এর পরিমাণ কিছুটা বেশি থাকে।</p>"
+  },{
+    "id": 8,
+    "question": "হেপারিন তৈরি ও নিঃসরণ করা কোন কোষের কাজ?",
+    "options": {
+      "a": "Lymphocyte",
+      "b": "Basophil",
+      "c": "Monocyte",
+      "d": "Neutrophil"
+    },
+    "correct": "b",
+    "explanation": "<p>বেসোফিল (Basophil) নামক শ্বেত রক্তকণিকা হেপারিন (Heparin) তৈরি ও নিঃসরণ করে। হেপারিন একটি অ্যান্টিকোয়াগুলেন্ট, যা রক্তনালির ভেতরে রক্ত জমাট বাঁধতে বাধা দেয়।</p>"
+  },
+
+{
+    "id": 19,
+    "question": "কোনটি মানব দেহের রক্ত জমাট বাঁধার কাজে সহযোগিতা করে না?",
+    "options": {
+      "a": "ফাইব্রিনোজেন",
+      "b": "প্রোথ্রম্বিন",
+      "c": "থ্রম্বোপ্লাস্টিন",
+      "d": "ইওসিনোফিল"
+    },
+    "correct": "d",
+    "explanation": "<p>ইওসিনোফিল (Eosinophil) মানব দেহের রক্ত জমাট বাঁধার কাজে সরাসরি সহযোগিতা করে না। এটি অ্যালার্জিক প্রতিক্রিয়া এবং পরজীবী সংক্রমণে ভূমিকা রাখে। ফাইব্রিনোজেন, প্রোথ্রম্বিন এবং থ্রম্বোপ্লাস্টিন হলো রক্ত জমাট বাঁধার প্রক্রিয়ায় জড়িত গুরুত্বপূর্ণ উপাদান।</p>"
+  },{
+    "id": 20,
+    "question": "বিশ্বব্যাপী রক্তশূন্যতার প্রধানতম কারণ কী?",
+    "options": {
+      "a": "ভিটামিন সি ঘাটতি জনিত",
+      "b": "লৌহ ঘাটতি জনিত",
+      "c": "জন্মগত রক্তশূন্যতা",
+      "d": "ভিটামিন বি-১২ ঘাটতি জনিত"
+    },
+    "correct": "b",
+    "explanation": "<p>বিশ্বব্যাপী রক্তশূন্যতার প্রধানতম কারণ হলো লৌহ ঘাটতি জনিত (Iron deficiency anemia)। পর্যাপ্ত আয়রনের অভাবে হিমোগ্লোবিন তৈরি হতে পারে না, যার ফলে রক্তে অক্সিজেনের পরিমাণ কমে যায় এবং রক্তশূন্যতা দেখা দেয়।</p>"
+  },{
+    "id": 24,
+    "question": "নিচের কোন প্রাণির লোহিত রক্ত কণিকায় নিউক্লিয়াস থাকে?",
+    "options": {
+      "a": "বাদুর",
+      "b": "উট",
+      "c": "শিম্পাঞ্জি",
+      "d": "বানর"
+    },
+    "correct": "b",
+    "explanation": "<p>সাধারণত স্তন্যপায়ী প্রাণীর লোহিত রক্তকণিকায় নিউক্লিয়াস থাকে না, তবে উট (Camel) এবং লামার মতো কিছু ব্যতিক্রমী প্রাণীর লোহিত রক্তকণিকায় নিউক্লিয়াস থাকে। এই নিউক্লিয়াস ডিম্বাকার আকৃতির হয়।</p>"
+  },{
+    "id": 42,
+    "question": "হিমোগ্লোবিনের কোন অংশে CO<sub>২</sub> যুক্ত হয়?",
+    "options": {
+      "a": "– COOH",
+      "b": "- OH",
+      "c": "– NH<sub>২</sub>",
+      "d": "HCO<sub>৩</sub>"
+    },
+    "correct": "c",
+    "explanation": "<p>হিমোগ্লোবিনের অ্যামিনো গ্রুপ (–NH<sub>২</sub>) অংশে কার্বন ডাই অক্সাইড (CO<sub>২</sub>) যুক্ত হয়, যা কার্বামিনোহিমোগ্লোবিন (Carbaminohemoglobin) গঠন করে। এই প্রক্রিয়ায় CO<sub>২</sub> দেহ থেকে ফুসফুসে পরিবহিত হয়।</p>"
+  },{
+    "id": 44,
+    "question": "রক্তরসে পানির পরিমাণ শতকরা কত ভাগ?",
+    "options": {
+      "a": "৫৫%",
+      "b": "৬৫%",
+      "c": "৮০%",
+      "d": "৯০%"
+    },
+    "correct": "d",
+    "explanation": "<p>রক্তরসে (Plasma) পানির পরিমাণ শতকরা প্রায় ৯০%। পানি রক্তের প্রধান উপাদান এবং এটি পুষ্টি উপাদান, হরমোন, বর্জ্য পদার্থ এবং অন্যান্য গুরুত্বপূর্ণ উপাদান পরিবহনে সাহায্য করে।</p>"
+  },{
+    "id": 55,
+    "question": "হেপারিন কী ধরনের রাসায়নিক পদার্থ?",
+    "options": {
+      "a": "লিপোপ্রোটিন",
+      "b": "ফসফোপ্রোটিন",
+      "c": "মিউকোপ্রোটিন",
+      "d": "ফ্ল্যাভো প্রোটিন"
+    },
+    "correct": "c",
+    "explanation": "<p>হেপারিন (Heparin) এক ধরনের মিউকোপ্রোটিন (Mucoprotein) বা গ্লাইকোস্যামিনোগ্লাইকান। এটি একটি শক্তিশালী প্রাকৃতিক অ্যান্টিকোয়াগুলেন্ট যা রক্তকে জমাট বাঁধতে বাধা দেয় এবং এটি বেসোফিল কোষ ও মাস্ট কোষ থেকে নিঃসৃত হয়।</p>"
+  },{
+    "id": 7,
+    "question": "ফোসা ওভালিস হৃৎপিণ্ডের কোথায় থাকে?",
+    "options": {
+      "a": "ভ্রূণের হৃৎপিণ্ডের আন্তঃঅলিন্দ পর্দার গাত্রে",
+      "b": "হৃৎপিণ্ডের আন্তঃনিলয় পর্দার গাত্রে",
+      "c": "অলিন্দ নিলয় পর্দার গাত্রে",
+      "d": "ডান নিলয়ের অভ্যন্তর গাত্রে"
+    },
+    "correct": "a",
+    "explanation": "<p><strong>ফোসা ওভালিস</strong> (Fossa Ovalis) <strong>ভ্রূণের হৃৎপিণ্ডের আন্তঃঅলিন্দ পর্দার গাত্রে</strong> থাকে। এটি ফোরামেন ওভালের (Foramen Ovale) একটি অবশিষ্ট অংশ, যা ভ্রূণ অবস্থায় ডান অলিন্দ থেকে বাম অলিন্দে রক্ত প্রবাহের অনুমতি দেয়। জন্মের পর এটি সাধারণত বন্ধ হয়ে যায়।</p>"
+  },{
+    "id": 13,
+    "question": "কোনটি হৃৎপিণ্ডের অংশ?",
+    "options": {
+      "a": "ক্যানালিকুলি",
+      "b": "ইন্টারক্যালেটেড ডিস্ক",
+      "c": "পেশিসূত্র",
+      "d": "কন্ড্রোসাইট"
+    },
+    "correct": "b",
+    "explanation": "<p><strong>ইন্টারক্যালেটেড ডিস্ক</strong> (Intercalated Disc) হৃৎপিণ্ডের একটি বিশেষ অংশ। এটি হৃৎপিণ্ডের পেশী কোষগুলোকে একে অপরের সাথে সংযুক্ত করে এবং দ্রুত বৈদ্যুতিক সংকেত পরিবহনে সহায়তা করে, যা হৃৎপিণ্ডের ছন্দবদ্ধ সংকোচনের জন্য অপরিহার্য। ক্যানালিকুলি অস্থি কোষে, কন্ড্রোসাইট তরুণাস্থিতে এবং পেশিসূত্র বিভিন্ন ধরনের পেশীতে থাকে।</p>"
+  },{
+    "id": 2,
+    "question": "অ্যাড্রেনালিন হৃদস্পন্দনের হারকে -",
+    "options": {
+      "a": "স্বাভাবিক রাখে",
+      "b": "বাড়ায়",
+      "c": "কমায়",
+      "d": "প্রভাবিত করে না"
+    },
+    "correct": "b",
+    "explanation": "<p>অ্যাড্রেনালিন (Adrenaline) বা এপিনেফ্রিন (Epinephrine) হলো একটি হরমোন যা 'ফাইট অর ফ্লাইট' (Fight or flight) প্রতিক্রিয়ায় গুরুত্বপূর্ণ ভূমিকা রাখে। এটি <strong>হৃদস্পন্দনের হারকে বাড়ায়</strong>, রক্তনালী সংকুচিত করে রক্তচাপ বাড়ায় এবং দেহের বিপাকীয় হার বৃদ্ধি করে।</p>"
+  },{
+    "id": 1,
+    "question": "মানবদেহের কোন অঙ্গে সবচেয়ে বেশি মাত্রায় রক্ত প্রবাহিত হয়?",
+    "options": {
+      "a": "বৃক্ক",
+      "b": "যকৃত",
+      "c": "মস্তিষ্ক",
+      "d": "অস্ত্র"
+    },
+    "correct": "b",
+    "explanation": "<p>মানবদেহের <strong>যকৃতে</strong> (Liver) সবচেয়ে বেশি মাত্রায় রক্ত প্রবাহিত হয়। যকৃত দুটি রক্তনালী থেকে রক্ত গ্রহণ করে: হেপাটিক ধমনি (Hepatic artery) থেকে অক্সিজেন সমৃদ্ধ রক্ত এবং হেপাটিক পোর্টাল শিরা (Hepatic portal vein) থেকে পরিপাকতন্ত্র থেকে আসা পুষ্টি সমৃদ্ধ রক্ত।</p>"
+  },{
+    "id": 4,
+    "question": "করোনারি ধমনি রক্ত সংবহন করে কোথায়?",
+    "options": {
+      "a": "যকৃতে",
+      "b": "ফুসফুসে",
+      "c": "বৃক্কে",
+      "d": "হৃৎপিণ্ডে"
+    },
+    "correct": "d",
+    "explanation": "<p>করোনারি ধমনি (Coronary artery) <strong>হৃৎপিণ্ডে</strong> রক্ত সংবহন করে। এই ধমনিগুলো হৃৎপিণ্ডের পেশীগুলোকে অক্সিজেন এবং পুষ্টি সরবরাহ করে, কারণ হৃৎপিণ্ডের নিজেরও কার্যকর থাকার জন্য রক্ত ​​প্রয়োজন।</p>"
+  },{
+    "id": 4,
+    "question": "কোন ধরনের সার্জারি সূক্ষ্ম ও সঠিক হয়?",
+    "options": {
+      "a": "রোবট সহযোগী সার্জারি",
+      "b": "অন পাম্প সার্জারি",
+      "c": "বাইপাস সার্জারি",
+      "d": "ওপেন হার্ট সার্জারি"
+    },
+    "correct": "a",
+    "explanation": "<p><strong>রোবট সহযোগী সার্জারি</strong> (Robot-assisted surgery) সাধারণত প্রচলিত সার্জারির চেয়ে সূক্ষ্ম ও নির্ভুল হয়। রোবোটিক সিস্টেম সার্জনকে বর্ধিত দৃষ্টিশক্তি এবং উন্নত নিয়ন্ত্রণ ক্ষমতা প্রদান করে, যা জটিল পদ্ধতিগুলোতেও উচ্চ নির্ভুলতা নিশ্চিত করে।</p>"
+  },{
+    "id": 5,
+    "question": "হার্টের কোন সমস্যার সময় থ্রম্বোলাইটিক থেরাপি দেয়া হয়?",
+    "options": {
+      "a": "অ্যানজাইনা",
+      "b": "হার্ট অ্যাটাক",
+      "c": "হার্ট ফেইলিউর",
+      "d": "উচ্চ রক্তচাপ"
+    },
+    "correct": "b",
+    "explanation": "<p><strong>হার্ট অ্যাটাক</strong> (Heart attack) বা মায়োকার্ডিয়াল ইনফার্কশন (Myocardial Infarction) এর সময় থ্রম্বোলাইটিক থেরাপি (Thrombolytic therapy) দেওয়া হয়। এই থেরাপির লক্ষ্য হলো রক্তনালীতে সৃষ্ট রক্ত ​​জমাটবদ্ধতা (thrombus) দ্রবীভূত করা, যা হৃৎপিণ্ডের পেশীতে রক্ত ​​প্রবাহ বন্ধ করে দেয়।</p>"
+  },
+
+{
+    "id": 8,
+    "question": "ডায়াফ্রামে রক্ত সরবরাহ করে কোন ধমনি?",
+    "options": {
+      "a": "বৃক্কীয়",
+      "b": "ফ্রেনিক",
+      "c": "সাবক্ল্যাভিয়ান",
+      "d": "ক্যারোটিড"
+    },
+    "correct": "b",
+    "explanation": "<p>ডায়াফ্রামে (Diaphragm) রক্ত সরবরাহ করে <strong>ফ্রেনিক ধমনি</strong> (Phrenic artery)। ফ্রেনিক ধমনিগুলো মহাধমনি থেকে উৎপন্ন হয়ে ডায়াফ্রামে অক্সিজেন সমৃদ্ধ রক্ত সরবরাহ করে।</p>"
+  },{
+    "id": 5,
+    "question": "বাম নিলয় → মহা ধমনি → অঙ্গতন্ত্র → মহাশিরা → ডান অলিন্দ। নিচের কোনটি উল্লিখিত গতিপথ অনুসরণ করে?",
+    "options": {
+      "a": "পালমোনারি",
+      "b": "পোর্টাল",
+      "c": "সিস্টেমিক",
+      "d": "করোনারি"
+    },
+    "correct": "c",
+    "explanation": "<p>উল্লিখিত গতিপথটি <strong>সিস্টেমিক সংবহনের</strong> (Systemic circulation) অংশ। সিস্টেমিক সংবহনে অক্সিজেন সমৃদ্ধ রক্ত বাম নিলয় থেকে মহাধমনির মাধ্যমে সারা দেহের অঙ্গতন্ত্রে পরিবাহিত হয় এবং সেখান থেকে অক্সিজেনবিহীন রক্ত মহাশিরার মাধ্যমে ডান অলিন্দে ফিরে আসে।</p>"
+  },{
+    "id": 13,
+    "question": "মানুষের হৃৎপিণ্ডে ভেন্ট্রিকলের সিস্টোল হলে নিচের কী ঘটবে?",
+    "options": {
+      "a": "সেমিলুনার কপাটিকা খুলে যাবে",
+      "b": "বাইকাসপিড কপাটিকা খুলে যাবে",
+      "c": "সেমিলুনার কপাটিকা বন্ধ হবে",
+      "d": "ট্রাইকাসপিড কপাটিকা খুলে যাবে"
+    },
+    "correct": "a",
+    "explanation": "<p>মানুষের হৃৎপিণ্ডে ভেন্ট্রিকলের সিস্টোল (Ventricular systole) হলে, অর্থাৎ নিলয়গুলো সংকুচিত হলে, <strong>সেমিলুনার কপাটিকা</strong> (Semilunar valves - অ্যাওর্টিক ও পালমোনারি কপাটিকা) <strong>খুলে যাবে</strong>। এর ফলে রক্ত নিলয় থেকে মহাধমনি ও পালমোনারি ধমনীতে প্রবেশ করবে। একই সময়ে বাইকাসপিড ও ট্রাইকাসপিড কপাটিকা বন্ধ হয়ে যাবে।</p>"
+  },{
+    "id": 13,
+    "question": "কোনটি হৃৎপিণ্ডের অংশ?",
+    "options": {
+      "a": "ক্যানালিকুলি",
+      "b": "ইন্টারক্যালেটেড ডিস্ক",
+      "c": "পেশিসূত্র",
+      "d": "কন্ড্রোসাইট"
+    },
+    "correct": "b",
+    "explanation": "<p><strong>ইন্টারক্যালেটেড ডিস্ক</strong> (Intercalated Disc) হৃৎপিণ্ডের একটি বিশেষ অংশ। এটি হৃৎপিণ্ডের পেশী কোষগুলোকে একে অপরের সাথে সংযুক্ত করে এবং দ্রুত বৈদ্যুতিক সংকেত পরিবহনে সহায়তা করে, যা হৃৎপিণ্ডের ছন্দবদ্ধ সংকোচনের জন্য অপরিহার্য। ক্যানালিকুলি অস্থি কোষে, কন্ড্রোসাইট তরুণাস্থিতে এবং পেশিসূত্র বিভিন্ন ধরনের পেশীতে থাকে।</p>"
+  },
+{
+    "id": 50,
+    "question": "রক্ত প্রবাহের সময় রক্ত জমাট না বাঁধার কারণ নিম্নের কোনটি?",
+    "options": {
+      "a": "পানির উপস্থিতি",
+      "b": "চলাচলের শ্লথগতি",
+      "c": "হেপারিনের উপস্থিতি",
+      "d": "নালির অমসৃণ গা"
+    },
+    "correct": "c",
+    "explanation": "<p>রক্ত প্রবাহের সময় রক্ত জমাট না বাঁধার প্রধান কারণ হলো হেপারিনের (Heparin) উপস্থিতি। হেপারিন একটি প্রাকৃতিক অ্যান্টিকোয়াগুলেন্ট যা রক্তনালির ভেতরে রক্ত তঞ্চন প্রক্রিয়াকে বাধা দেয় এবং রক্তকে তরল রাখতে সাহায্য করে। এছাড়াও রক্তনালির মসৃণ অভ্যন্তরীণ পৃষ্ঠও জমাট বাঁধার প্রতিরোধে সহায়ক।</p>"
+  },
+
+
+  {
+    "id": 1,
+    "question": "নিচের কোন তথ্যটি সঠিক ?",
+    "options": {
+      "a": "রক্ত সামান্য অম্লীয়",
+      "b": "অম্ল-ক্ষারের সাম্যাবস্থা রক্ষা করে",
+      "c": "বিলিভার্ডিন রক্তের রঞ্জক পদার্থ নয়",
+      "d": "জ্যানথিন রক্তের প্লাজমা প্রোটিন"
+    },
+    "correct": "b",
+    "explanation": "<p>রক্ত একটি বাফার দ্রবণ হিসাবে কাজ করে, যা শরীরের pH-কে একটি নির্দিষ্ট সীমার মধ্যে (7.35-7.45) বজায় রাখতে সাহায্য করে। এই প্রক্রিয়াকে <strong>অম্ল-ক্ষারের সাম্যাবস্থা (Acid-base balance)</strong> রক্ষা করা বলে। রক্ত সামান্য ক্ষারীয় (অ্যালকালাইন), অম্লীয় নয়। বিলিভার্ডিন একটি পিত্ত রঞ্জক এবং বিলিরুবিনের পূর্বসূরী, যা রক্তের রঞ্জক পদার্থ নয়। জ্যানথিন একটি প্লাজমা প্রোটিন নয়, এটি একটি পিউরিন ক্ষার।</p>"
+  },
+  {
+    "id": 2,
+    "question": "অনুচক্রিকার কাজ নয় কোনটি?",
+    "options": {
+      "a": "হিমোস্ট্যাসিস",
+      "b": "সেরাটোনিন ক্ষরণ করে",
+      "c": "রোগ প্রতিরোধ করে",
+      "d": "ক্লটিং টাইম মন্থর করে"
+    },
+    "correct": "d",
+    "explanation": "<p>অনুচক্রিকা বা প্লাটিলেট প্রধানত রক্ত জমাট বাঁধা বা <strong>হিমোস্ট্যাসিস</strong> প্রক্রিয়ার সাথে জড়িত। এটি রক্তপাত বন্ধ করতে সাহায্য করে এবং <strong>সেরাটোনিন</strong> ক্ষরণ করে রক্তনালীর সংকোচন ঘটায়। অনুচক্রিকা রক্ত জমাট বাঁধাকে ত্বরান্বিত করে, মন্থর করে না। রোগ প্রতিরোধ করা শ্বেত রক্ত কণিকার প্রধান কাজ, অনুচক্রিকার নয়।</p>"
+  },
+  {
+    "id": 3,
+    "question": "নিচের কোনটি সঠিক?",
+    "options": {
+      "a": "নিউট্রোফিল ২-৩ লোব বিশিষ্ট",
+      "b": "ইওসোনোফিল লাল বর্ন ধারণ করে",
+      "c": "লিম্ফোসাইটের আয়ুষ্কাল ৭-১২ দিন",
+      "d": "লিম্ফোসাইট বৃহত্তম শ্বেত রক্ত কনিকা"
+    },
+    "correct": "b",
+    "explanation": "<p><strong>ইওসোনোফিল</strong> স্টেনিং করার সময় ইওসিন নামক একটি অ্যাসিডিক রঞ্জকের সাথে বিক্রিয়া করে <strong>লাল বা কমলা-গোলাপি</strong> বর্ন ধারণ করে। নিউট্রোফিল ২-৫ লোব বিশিষ্ট, ২-৩ নয়। লিম্ফোসাইটের আয়ুষ্কাল কয়েক সপ্তাহ থেকে কয়েক বছর পর্যন্ত হতে পারে, ৭-১২ দিন নয়। লিম্ফোসাইট শ্বেত রক্ত কণিকাগুলোর মধ্যে ক্ষুদ্রতম, বৃহত্তম নয়।</p>"
+  },
+  {
+    "id": 4,
+    "question": "ক্লটিং ফ্যাক্টরের কাজের সাথে কোনটি সঙ্গতিপূর্ণ?",
+    "options": {
+      "a": "Factor I : একটি গ্লোবিউলিন প্রোটিন",
+      "b": "X নম্বর ফ্যাক্টরের আরেক নাম খ্রিস্টমাস ফ্যাক্টর",
+      "c": "হ্যাগম্যান ক্যালিক্রেইনকে নিষ্ক্রিয় করে",
+      "d": "Factor III ভিটামিন-K এর উপস্থিতিতে সংশ্লেষিত হয়"
+    },
+    "correct": "a",
+    "explanation": "<p><strong>Factor I</strong>, যা <strong>ফাইব্রিনোজেন</strong> নামেও পরিচিত, একটি <strong>গ্লোবিউলিন প্রোটিন</strong> যা রক্ত জমাট বাঁধায় গুরুত্বপূর্ণ ভূমিকা পালন করে। ক্রিসমাস ফ্যাক্টর হল ফ্যাক্টর IX, ফ্যাক্টর X নয়। হ্যাগম্যান ফ্যাক্টর (ফ্যাক্টর XII) রক্ত তঞ্চন প্রক্রিয়াকে সক্রিয় করে, নিষ্ক্রিয় করে না। ফ্যাক্টর II, VII, IX এবং X ভিটামিন-K এর উপস্থিতিতে সংশ্লেষিত হয়, ফ্যাক্টর III নয়।</p>"
+  },
+  {
+    "id": 5,
+    "question": "লসিকা সম্পর্কে কোন তথ্যটি সঠিক নয়?",
+    "options": {
+      "a": "রক্তজালক থেকে নি:সৃত তরল অংশ",
+      "b": "লিম্ফোসাইট প্রকৃতির শ্বেতকণিকা বিদ্যমান",
+      "c": "সামান্য পরিমানে থাকে",
+      "d": "জমাট বাধতে পারে"
+    },
+    "correct": "d",
+    "explanation": "<p>লসিকা রক্তজালক থেকে নি:সৃত এক প্রকার টিস্যু ফ্লুইড। এতে প্রচুর পরিমাণে <strong>লিম্ফোসাইট</strong> থাকে। এটি একটি স্বচ্ছ বা হালকা হলুদ তরল এবং এটি শরীরের টিস্যু থেকে অতিরিক্ত তরল নিষ্কাশনে সহায়তা করে। লসিকাতে ফাইব্রিনোজেনের পরিমাণ কম হওয়ায় এটি সহজে জমাট বাঁধে না।</p>"
+  },
+  {
+    "id": 6,
+    "question": "রক্ততঞ্চন সংক্রান্ত সমসা কোনটি?",
+    "options": {
+      "a": "হিমোফিলিয়া",
+      "b": "এমবোলিজম",
+      "c": "করোনারি হার্ট অ্যাটাক",
+      "d": "থ্যালাসেমিয়া"
+    },
+    "correct": "d",
+    "explanation": "<p><strong>থ্যালাসেমিয়া</strong> একটি বংশগত রক্তরোগ যেখানে হিমোগ্লোবিনের উৎপাদন ব্যাহত হয়, যা রক্ততঞ্চন সংক্রান্ত সমস্যা সৃষ্টি করে না। <strong>হিমোফিলিয়া</strong> একটি বংশগত রোগ যেখানে রক্ত জমাট বাঁধার ক্ষমতা কমে যায়। এমবোলিজম এবং করোনারি হার্ট অ্যাটাক কার্ডিওভাসকুলার রোগ, সরাসরি রক্ততঞ্চন সংক্রান্ত সমস্যা নয়, যদিও এগুলোর সাথে রক্তের জমাট বাঁধার সম্পর্ক থাকতে পারে।</p>"
+  },
+  {
+    "id": 7,
+    "question": "কোন ধরণের টনসিল মানবদেহে পাওয়া যায় না?",
+    "options": {
+      "a": "প্যালেটাইন",
+      "b": "অ্যাডেনয়েড",
+      "c": "ফ্যারিঞ্জিয়াল",
+      "d": "ম্যান্ডিবুলার"
+    },
+    "correct": "d",
+    "explanation": "<p>মানুষের গলায় সাধারণত তিন জোড়া প্রধান টনসিল থাকে: <strong>প্যালেটাইন টনসিল</strong>, <strong>ফ্যারিঞ্জিয়াল টনসিল (অ্যাডেনয়েড)</strong> এবং লিঙ্গুয়াল টনসিল। ম্যান্ডিবুলার টনসিল মানবদেহে পাওয়া যায় না।</p>"
+  },
+  {
+    "id": 8,
+    "question": "লসিকা গ্রন্থি নয় কোনটি?",
+    "options": {
+      "a": "প্লীহা",
+      "b": "টনসিল",
+      "c": "থাইমাস",
+      "d": "পিটুইটারি গ্ল্যান্ড"
+    },
+    "correct": "d",
+    "explanation": "<p><strong>পিটুইটারি গ্ল্যান্ড</strong> একটি অন্তঃক্ষরা গ্রন্থি যা হরমোন নিঃসরণ করে। এটি লসিকাতন্ত্রের অংশ নয়। প্লীহা, টনসিল এবং থাইমাস হলো লসিকা গ্রন্থি যা দেহের রোগ প্রতিরোধে গুরুত্বপূর্ণ ভূমিকা পালন করে।</p>"
+  },
+  {
+    "id": 9,
+    "question": "লসিকায় -",
+    "options": {
+      "a": "প্রোটিনের পরিমান কম",
+      "b": "চাপযুক্ত প্রবাহ",
+      "c": "লালটে বর্নের",
+      "d": "শ্বেত রক্ত কনিকা কম, প্লাজমা বেশী"
+    },
+    "correct": "a",
+    "explanation": "<p>লসিকায় রক্তের তুলনায় <strong>প্রোটিনের পরিমাণ কম</strong> থাকে। লসিকাতন্ত্রে প্রবাহ অত্যন্ত ধীর এবং চাপ কম। এটি বর্ণহীন বা হালকা হলুদ বর্ণের, লালটে নয়। লসিকায় শ্বেত রক্ত কণিকা (বিশেষ করে লিম্ফোসাইট) প্রচুর পরিমাণে থাকে, তবে এর তরল অংশে (প্লাজমা) প্রোটিন কম থাকে।</p>"
+  },
+{
+    "id": 5,
+    "question": "ডান অলিন্দ প্রসারিত হলে অগ্রদেশীয় মহাশিরার মাধ্যমে দেহের সামনের অঞ্চল থেকে কার্বন ডাই-অক্সাইড সমৃদ্ধ রক্ত নিম্নের কোন অলিন্দে ফিরে আসে?",
+    "options": {
+      "a": "ডান অলিন্দ",
+      "b": "ডান নিলয়",
+      "c": "বাম অলিন্দ",
+      "d": "বাম নিলয়"
+    },
+    "correct": "a",
+    "explanation": "<p>ডান অলিন্দ প্রসারিত হলে <strong>অগ্রদেশীয় মহাশিরার</strong> (Superior Vena Cava) মাধ্যমে দেহের সামনের অঞ্চল থেকে কার্বন ডাই-অক্সাইড সমৃদ্ধ রক্ত <strong>ডান অলিন্দে</strong> (Right Atrium) ফিরে আসে। এরপর এই রক্ত ডান নিলয় হয়ে ফুসফুসে যায় অক্সিজেনযুক্ত হওয়ার জন্য।</p>"
+  }
+
+
+      ];
+
+
+
+      const totalQuestions = questions.length;
+
+      let timeLeft = Math.floor(totalQuestions / 2) * 60;
+
+      const timerElement = document.getElementById("timer");
+
+      let timerInterval;
+
+
+
+      function updateTimer() {
+
+        const minutes = Math.floor(timeLeft / 60);
+
+        const seconds = timeLeft % 60;
+
+        timerElement.innerText = `${toBengaliNumber(
+
+          minutes
+
+        )} মিনিট ${toBengaliNumber(seconds)} সেকেন্ড`;
+
+
+
+        if (timeLeft > 0) {
+
+          timeLeft--;
+
+        } else {
+
+          stopTimer();
+
+          confirmSubmit();
+
+        }
+
+      }
+
+
+
+      function startTimer() {
+
+        timerElement.innerText = `${toBengaliNumber(
+
+          Math.floor(timeLeft / 60)
+
+        )} মিনিট ${toBengaliNumber(timeLeft % 60)} সেকেন্ড`;
+
+        timerInterval = setInterval(updateTimer, 1000);
+
+      }
+
+
+
+      function stopTimer() {
+
+        clearInterval(timerInterval);
+
+      }
+
+
+
+      function toBengaliNumber(num) {
+
+        const bengaliDigits = [
+
+          "০",
+
+          "১",
+
+          "২",
+
+          "৩",
+
+          "৪",
+
+          "৫",
+
+          "৬",
+
+          "৭",
+
+          "৮",
+
+          "৯",
+
+        ];
+
+        return String(num).replace(/\d/g, (d) => bengaliDigits[d]);
+
+      }
+
+
+
+      function shuffleArray(array) {
+
+        for (let i = array.length - 1; i > 0; i--) {
+
+          const j = Math.floor(Math.random() * (i + 1));
+
+          [array[i], array[j]] = [array[j], array[i]];
+
+        }
+
+        return array;
+
+      }
+
+
+
+      function generateQuestions() {
+
+        const examContainer = document.querySelector("#exam");
+
+        examContainer.innerHTML = "";
+
+        const shuffledQuestions = shuffleArray([...questions]);
+
+        shuffledQuestions.forEach((question, index) => {
+
+          const questionDiv = document.createElement("div");
+
+          questionDiv.classList.add("question-container");
+
+          questionDiv.setAttribute("data-question", question.id);
+
+          questionDiv.setAttribute("data-correct", question.correct);
+
+
+
+          let optionsHTML = "";
+
+          for (let option in question.options) {
+
+            optionsHTML += `
+
+              <label class="option" data-option="${option}">
+
+                <div class="circle">${option}</div>
+
+                <span class="option-text">${question.options[option]}</span>
+
+              </label>
+
+            `;
+
+          }
+
+
+
+          const explanationHTML = question.explanation
+
+            ? `<div class="explanation-dropdown">
+
+                  <button class="explanation-btn">ব্যাখ্যা দেখো</button>
+
+                  <div class="explanation-content">
+
+                    <div class="explanation-label">ব্যাখ্যা:</div>
+
+                    ${question.explanation}
+
+                  </div>
+
+                </div>`
+
+            : "";
+
+
+
+          questionDiv.innerHTML = `
+
+              <p class="question-label">${index + 1}. ${question.question}</p>
+
+              <div class="options">
+
+                ${optionsHTML}
+
+              </div>
+
+              ${explanationHTML}
+
+            `;
+
+          examContainer.appendChild(questionDiv);
+
+        });
+
+
+
+        document.querySelectorAll(".question-container").forEach((container) => {
+
+          container.style.display = "block";
+
+        });
+
+
+
+        document.querySelectorAll(".option").forEach((option) => {
+
+          option.addEventListener(
+
+            "click",
+
+            function (e) {
+
+              e.preventDefault();
+
+              const parent = this.closest(".question-container");
+
+              if (parent.classList.contains("locked")) return;
+
+              parent.classList.add("locked");
+
+              parent.querySelectorAll(".option").forEach((el) => {
+
+                if (el !== this) {
+
+                  el.style.pointerEvents = "none";
+
+                  el.style.cursor = "default";
+
+                }
+
+                el.classList.remove("selected");
+
+              });
+
+              this.classList.add("selected");
+
+            },
+
+            { once: true }
+
+          );
+
+        });
+
+
+
+        document.querySelectorAll(".explanation-btn").forEach((btn) => {
+
+          btn.addEventListener("click", function () {
+
+            const content = this.nextElementSibling;
+
+            content.classList.toggle("visible");
+
+            this.classList.toggle("active");
+
+          });
+
+        });
+
+
+
+        const examInfo = document.getElementById("exam-info");
+
+        if (examInfo) {
+
+          examInfo.innerText = `পূর্ণ নম্বরঃ ${toBengaliNumber(
+
+            totalQuestions
+
+          )}`;
+
+        }
+
+      }
+
+
+
+      function initializeChart() {
+
+        const ctx = document.getElementById("scoreChart").getContext("2d");
+
+        chartInstance = new Chart(ctx, {
+
+          type: "pie",
+
+          data: {
+
+            labels: ["ঠিক উত্তর", "ভুল উত্তর", "অনুত্তরিত"],
+
+            datasets: [
+
+              {
+
+                data: [0, 0, 0],
+
+                backgroundColor: ["#34c759", "#ff3b30", "#007aff"],
+
+                borderColor: "#fff",
+
+                borderWidth: 2,
+
+                hoverOffset: 10,
+
+              },
+
+            ],
+
+          },
+
+          options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            cutout: "10%",
+
+            layout: {
+
+              padding: 10,
+
+            },
+
+            plugins: {
+
+              legend: {
+
+                position: "bottom",
+
+                labels: {
+
+                  font: {
+
+                    family: '"Hind Siliguri", sans-serif',
+
+                    size: 13,
+
+                    weight: "bold",
+
+                  },
+
+                  color: "#333",
+
+                  padding: 12,
+
+                  boxWidth: 14,
+
+                  generateLabels: (chart) => {
+
+                    const data = chart.data;
+
+                    return data.labels.map((label, i) => ({
+
+                      text: label,
+
+                      font: {
+
+                        family: '"Hind Siliguri", sans-serif',
+
+                      },
+
+                      fillStyle: data.datasets[0].backgroundColor[i],
+
+                      hidden: !chart.getDataVisibility(i),
+
+                      index: i,
+
+                    }));
+
+                  },
+
+                },
+
+              },
+
+              tooltip: {
+
+                backgroundColor: "rgba(0, 0, 0, 0.9)",
+
+                cornerRadius: 6,
+
+                titleFont: {
+
+                  family: '"Hind Siliguri", sans-serif',
+
+                  size: 14,
+
+                  weight: "bold",
+
+                },
+
+                bodyFont: {
+
+                  family: '"Hind Siliguri", sans-serif',
+
+                  size: 13,
+
+                },
+
+                padding: 10,
+
+                boxPadding: 5,
+
+              },
+
+            },
+
+            animation: {
+
+              animateScale: true,
+
+              animateRotate: true,
+
+              duration: 1000,
+
+              easing: "easeOutQuart",
+
+            },
+
+            elements: {
+
+              arc: {
+
+                borderRadius: 8,
+
+              },
+
+            },
+
+            onClick: (e, elements) => {
+
+              if (elements.length > 0) {
+
+                const index = elements[0].index;
+
+                const filter = ["correct", "wrong", "unanswered"][index];
+
+                filterQuestions(filter);
+
+              } else {
+
+                filterQuestions("all");
+
+              }
+
+            },
+
+          },
+
+        });
+
+      }
+
+
+
+      function filterQuestions(type) {
+
+        document.querySelectorAll(".question-container").forEach((question) => {
+
+          const status = question.getAttribute("data-status");
+
+          if (type === "all" || status === type) {
+
+            question.style.display = "block";
+
+          } else {
+
+            question.style.display = "none";
+
+          }
+
+        });
+
+      }
+
+
+
+      function showConfirmPopup() {
+
+        document.getElementById("confirmPopup").style.display = "block";
+
+      }
+
+
+
+      function confirmSubmit() {
+
+        document.getElementById("confirmPopup").style.display = "none";
+
+        stopTimer();
+
+        let score = 0,
+
+          answered = 0,
+
+          correct = 0,
+
+          wrong = 0,
+
+          unanswered = 0;
+
+
+
+        document
+
+          .querySelectorAll(".question-container")
+
+          .forEach((question, index) => {
+
+            let correctAnswer = question.getAttribute("data-correct");
+
+            let selectedOption = question.querySelector(".option.selected");
+
+
+
+            if (selectedOption) {
+
+              answered++;
+
+              let chosenAnswer = selectedOption.getAttribute("data-option");
+
+              if (chosenAnswer === correctAnswer) {
+
+                selectedOption
+
+                  .querySelector(".option-text")
+
+                  .classList.add("correct-text");
+
+                score += 1;
+
+                correct++;
+
+                question.setAttribute("data-status", "correct");
+
+              } else {
+
+                selectedOption
+
+                  .querySelector(".option-text")
+
+                  .classList.add("incorrect-text");
+
+                question
+
+                  .querySelector(`[data-option="${correctAnswer}"] .option-text`)
+
+                  .classList.add("correct-text");
+
+                score -= 0.25;
+
+                wrong++;
+
+                question.setAttribute("data-status", "wrong");
+
+              }
+
+            } else {
+
+              question
+
+                .querySelector(`[data-option="${correctAnswer}"] .option-text`)
+
+                .classList.add("unattempted-text");
+
+              unanswered++;
+
+              question.setAttribute("data-status", "unanswered");
+
+            }
+
+            question.style.display = "block";
+
+
+
+            const explanationDropdown = question.querySelector(
+
+              ".explanation-dropdown"
+
+            );
+
+            if (explanationDropdown) {
+
+              explanationDropdown.classList.add("visible");
+
+            }
+
+          });
+
+
+
+        const chartContainer = document.querySelector(".chart-container");
+
+        chartContainer.classList.add("visible");
+
+        if (!chartInstance) {
+
+          initializeChart();
+
+        }
+
+        chartInstance.data.datasets[0].data = [correct, wrong, unanswered];
+
+        chartInstance.update();
+
+
+
+        document.getElementById("totalQuestions").innerText =
+
+          toBengaliNumber(totalQuestions);
+
+        document.getElementById("answered").innerText = toBengaliNumber(answered);
+
+        document.getElementById("correctAnswers").innerText =
+
+          toBengaliNumber(correct);
+
+        document.getElementById("wrongAnswers").innerText = toBengaliNumber(wrong);
+
+        document.getElementById("unanswered").innerText =
+
+          toBengaliNumber(unanswered);
+
+        document.getElementById("finalScore").innerText = toBengaliNumber(
+
+          score.toFixed(2)
+
+        );
+
+        document.getElementById("popupSerial").innerText = serialNumber;
+
+
+
+        document.getElementById("formSerialNumber").value = serialNumber;
+
+        document.getElementById("formFinalScore").value = score.toFixed(2);
+
+        document.getElementById("formCorrectAnswers").value = correct;
+
+        document.getElementById("formWrongAnswers").value = wrong;
+
+        document.getElementById("formUnanswered").value = unanswered;
+
+        document.getElementById("formSubmissionTime").value =
+
+          new Date().toISOString();
+
+        document.querySelector("#scoreForm input[name='actionType']").value =
+
+          "exam_submit";
+
+
+
+        document.getElementById("submitBtn").style.display = "none";
+
+        document.getElementById("scorePopup").style.display = "block";
+
+      }
+
+
+
+      function cancelSubmit() {
+
+        document.getElementById("confirmPopup").style.display = "none";
+
+      }
+
+
+
+      function showErrorPopup() {
+
+        document.getElementById("errorPopup").style.display = "block";
+
+      }
+
+
+
+      function closeErrorPopup() {
+
+        document.getElementById("errorPopup").style.display = "none";
+
+      }
+
+
+
+      document
+
+        .getElementById("scoreForm")
+
+        .addEventListener("submit", function (event) {
+
+          event.preventDefault();
+
+          const form = this;
+
+          const formData = new FormData(form);
+
+          const url = form.action;
+
+
+
+          // Send data in the background using fetch
+
+          fetch(url, {
+
+            method: "POST",
+
+            body: formData,
+
+            headers: {
+
+              Accept: "application/json",
+
+            },
+
+          })
+
+            .then((response) => {
+
+              if (response.ok) {
+
+                console.log("Form submitted successfully");
+
+              } else {
+
+                console.error("Form submission failed:", response.statusText);
+
+              }
+
+            })
+
+            .catch((error) => {
+
+              console.error("Error:", error);
+
+            });
+
+
+
+          closePopup();
+
+        });
+
+
+
+      function closePopup() {
+
+        const scorePopup = document.getElementById("scorePopup");
+
+        scorePopup.classList.add("slide-out");
+
+        setTimeout(() => {
+
+          scorePopup.style.display = "none";
+
+          scorePopup.classList.remove("slide-out");
+
+          window.scrollTo({ top: 0, behavior: "smooth" });
+
+        }, 500);
+
+      }
+
+    </script>
+
+  </body>
+
+</html>
